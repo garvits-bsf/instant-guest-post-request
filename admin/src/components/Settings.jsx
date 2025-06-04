@@ -12,7 +12,12 @@ import {
   CardHeader,
   CardBody,
   CardFooter,
-  __experimentalHeading as Heading
+  __experimentalHeading as Heading,
+  __experimentalSpacer as Spacer,
+  __experimentalDivider as Divider,
+  __experimentalText as Text,
+  __experimentalHStack as HStack,
+  __experimentalVStack as VStack
 } from '@wordpress/components';
 
 const Settings = () => {
@@ -110,10 +115,8 @@ const Settings = () => {
 
   if (loading) {
     return (
-      <div className="p-8">
-        <div className="flex justify-center">
-          <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
       </div>
     );
   }
@@ -124,22 +127,27 @@ const Settings = () => {
       title: __('General'),
       className: 'tab-general',
       content: (
-        <div className="space-y-6">
-          <CheckboxControl
-            label={__('Allow users to upload a featured image with their submission')}
-            checked={settings.enable_featured_image}
-            onChange={(value) => handleChange('enable_featured_image', value)}
-          />
-          
-          <RangeControl
-            label={__('Max Upload Size (MB)')}
-            value={settings.max_upload_size}
-            onChange={(value) => handleChange('max_upload_size', value)}
-            min={1}
-            max={10}
-            help={__('Maximum file size for featured image uploads (1-10 MB)')}
-          />
-        </div>
+        <VStack spacing={6}>
+          <Card className="w-full border border-gray-200">
+            <CardBody>
+              <CheckboxControl
+                label={__('Allow users to upload a featured image with their submission')}
+                checked={settings.enable_featured_image}
+                onChange={(value) => handleChange('enable_featured_image', value)}
+                className="mb-4"
+              />
+              
+              <RangeControl
+                label={__('Max Upload Size (MB)')}
+                value={settings.max_upload_size}
+                onChange={(value) => handleChange('max_upload_size', value)}
+                min={1}
+                max={10}
+                help={__('Maximum file size for featured image uploads (1-10 MB)')}
+              />
+            </CardBody>
+          </Card>
+        </VStack>
       ),
     },
     {
@@ -147,96 +155,114 @@ const Settings = () => {
       title: __('Email Notifications'),
       className: 'tab-email',
       content: (
-        <div className="space-y-8">
-          <div>
-            <Heading level={3} className="text-lg font-medium text-gray-900 mb-4">{__('Admin Notifications')}</Heading>
-            <div className="mt-4 space-y-4">
-              <CheckboxControl
-                label={__('Send email notification to admin when a new guest post is submitted')}
-                checked={settings.enable_admin_notifications}
-                onChange={(value) => handleChange('enable_admin_notifications', value)}
-              />
-              
-              {settings.enable_admin_notifications && (
-                <>
-                  <TextControl
-                    label={__('Admin Email')}
-                    value={settings.admin_email}
-                    onChange={(value) => handleChange('admin_email', value)}
-                    help={__('Leave blank to use the default admin email')}
-                  />
-                  
-                  <TextControl
-                    label={__('Admin Email Subject')}
-                    value={settings.admin_email_subject}
-                    onChange={(value) => handleChange('admin_email_subject', value)}
-                    help={__('Available placeholders: {site_name}, {post_title}')}
-                  />
-                </>
-              )}
-            </div>
-          </div>
+        <VStack spacing={8}>
+          <Card className="w-full">
+            <CardHeader>
+              <Heading level={3} className="text-lg font-medium text-gray-900">{__('Admin Notifications')}</Heading>
+            </CardHeader>
+            <CardBody>
+              <VStack spacing={4}>
+                <CheckboxControl
+                  label={__('Send email notification to admin when a new guest post is submitted')}
+                  checked={settings.enable_admin_notifications}
+                  onChange={(value) => handleChange('enable_admin_notifications', value)}
+                />
+                
+                {settings.enable_admin_notifications && (
+                  <>
+                    <TextControl
+                      label={__('Admin Email')}
+                      value={settings.admin_email}
+                      onChange={(value) => handleChange('admin_email', value)}
+                      help={__('Leave blank to use the default admin email')}
+                    />
+                    
+                    <TextControl
+                      label={__('Admin Email Subject')}
+                      value={settings.admin_email_subject}
+                      onChange={(value) => handleChange('admin_email_subject', value)}
+                      help={__('Available placeholders: {site_name}, {post_title}')}
+                    />
+                  </>
+                )}
+              </VStack>
+            </CardBody>
+          </Card>
           
-          <div>
-            <Heading level={3} className="text-lg font-medium text-gray-900 mb-4">{__('Author Notifications')}</Heading>
-            <div className="mt-4 space-y-4">
-              <CheckboxControl
-                label={__('Send email notifications to authors')}
-                checked={settings.enable_author_notifications}
-                onChange={(value) => handleChange('enable_author_notifications', value)}
-              />
-              
-              {settings.enable_author_notifications && (
-                <>
-                  <Heading level={4} className="text-base font-medium text-gray-900 mb-3">{__('Submission Confirmation')}</Heading>
-                  <TextControl
-                    label={__('Email Subject')}
-                    value={settings.author_email_subject}
-                    onChange={(value) => handleChange('author_email_subject', value)}
-                    help={__('Available placeholders: {site_name}, {post_title}')}
-                  />
-                  <TextareaControl
-                    label={__('Email Template')}
-                    value={settings.author_email_template}
-                    onChange={(value) => handleChange('author_email_template', value)}
-                    help={__('Available placeholders: {author_name}, {post_title}, {site_name}')}
-                    rows={6}
-                  />
-                  
-                  <Heading level={4} className="text-base font-medium text-gray-900 mb-3">{__('Approval Notification')}</Heading>
-                  <TextControl
-                    label={__('Email Subject')}
-                    value={settings.approval_email_subject}
-                    onChange={(value) => handleChange('approval_email_subject', value)}
-                    help={__('Available placeholders: {site_name}, {post_title}')}
-                  />
-                  <TextareaControl
-                    label={__('Email Template')}
-                    value={settings.approval_email_template}
-                    onChange={(value) => handleChange('approval_email_template', value)}
-                    help={__('Available placeholders: {author_name}, {post_title}, {site_name}, {post_url}')}
-                    rows={6}
-                  />
-                  
-                  <Heading level={4} className="text-base font-medium text-gray-900 mb-3">{__('Rejection Notification')}</Heading>
-                  <TextControl
-                    label={__('Email Subject')}
-                    value={settings.rejection_email_subject}
-                    onChange={(value) => handleChange('rejection_email_subject', value)}
-                    help={__('Available placeholders: {site_name}, {post_title}')}
-                  />
-                  <TextareaControl
-                    label={__('Email Template')}
-                    value={settings.rejection_email_template}
-                    onChange={(value) => handleChange('rejection_email_template', value)}
-                    help={__('Available placeholders: {author_name}, {post_title}, {site_name}')}
-                    rows={6}
-                  />
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+          <Card className="w-full">
+            <CardHeader>
+              <Heading level={3} className="text-lg font-medium text-gray-900">{__('Author Notifications')}</Heading>
+            </CardHeader>
+            <CardBody>
+              <VStack spacing={6}>
+                <CheckboxControl
+                  label={__('Send email notifications to authors')}
+                  checked={settings.enable_author_notifications}
+                  onChange={(value) => handleChange('enable_author_notifications', value)}
+                />
+                
+                {settings.enable_author_notifications && (
+                  <>
+                    <div className="space-y-4">
+                      <Heading level={4} className="text-base font-medium text-gray-900">{__('Submission Confirmation')}</Heading>
+                      <TextControl
+                        label={__('Email Subject')}
+                        value={settings.author_email_subject}
+                        onChange={(value) => handleChange('author_email_subject', value)}
+                        help={__('Available placeholders: {site_name}, {post_title}')}
+                      />
+                      <TextareaControl
+                        label={__('Email Template')}
+                        value={settings.author_email_template}
+                        onChange={(value) => handleChange('author_email_template', value)}
+                        help={__('Available placeholders: {author_name}, {post_title}, {site_name}')}
+                        rows={6}
+                      />
+                    </div>
+                    
+                    <Divider />
+                    
+                    <div className="space-y-4">
+                      <Heading level={4} className="text-base font-medium text-gray-900">{__('Approval Notification')}</Heading>
+                      <TextControl
+                        label={__('Email Subject')}
+                        value={settings.approval_email_subject}
+                        onChange={(value) => handleChange('approval_email_subject', value)}
+                        help={__('Available placeholders: {site_name}, {post_title}')}
+                      />
+                      <TextareaControl
+                        label={__('Email Template')}
+                        value={settings.approval_email_template}
+                        onChange={(value) => handleChange('approval_email_template', value)}
+                        help={__('Available placeholders: {author_name}, {post_title}, {site_name}, {post_url}')}
+                        rows={6}
+                      />
+                    </div>
+                    
+                    <Divider />
+                    
+                    <div className="space-y-4">
+                      <Heading level={4} className="text-base font-medium text-gray-900">{__('Rejection Notification')}</Heading>
+                      <TextControl
+                        label={__('Email Subject')}
+                        value={settings.rejection_email_subject}
+                        onChange={(value) => handleChange('rejection_email_subject', value)}
+                        help={__('Available placeholders: {site_name}, {post_title}')}
+                      />
+                      <TextareaControl
+                        label={__('Email Template')}
+                        value={settings.rejection_email_template}
+                        onChange={(value) => handleChange('rejection_email_template', value)}
+                        help={__('Available placeholders: {author_name}, {post_title}, {site_name}')}
+                        rows={6}
+                      />
+                    </div>
+                  </>
+                )}
+              </VStack>
+            </CardBody>
+          </Card>
+        </VStack>
       ),
     },
     {
@@ -244,95 +270,151 @@ const Settings = () => {
       title: __('Form Settings'),
       className: 'tab-form',
       content: (
-        <div className="space-y-6">
-          <TextControl
-            label={__('Form Title')}
-            value={settings.form_title}
-            onChange={(value) => handleChange('form_title', value)}
-          />
-          
-          <TextControl
-            label={__('Success Message')}
-            value={settings.success_message}
-            onChange={(value) => handleChange('success_message', value)}
-            help={__('Message displayed after successful submission')}
-          />
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">{__('Required Fields')}</label>
-            <div className="space-y-2">
-              <CheckboxControl
-                label={__('Name')}
-                checked={settings.required_fields.includes('name')}
-                onChange={(checked) => handleRequiredFieldChange('name', checked)}
-              />
-              <CheckboxControl
-                label={__('Email')}
-                checked={settings.required_fields.includes('email')}
-                onChange={(checked) => handleRequiredFieldChange('email', checked)}
-              />
-              <CheckboxControl
-                label={__('Post Title')}
-                checked={settings.required_fields.includes('title')}
-                onChange={(checked) => handleRequiredFieldChange('title', checked)}
-              />
-              <CheckboxControl
-                label={__('Post Content')}
-                checked={settings.required_fields.includes('content')}
-                onChange={(checked) => handleRequiredFieldChange('content', checked)}
-              />
-            </div>
-          </div>
-        </div>
+        <VStack spacing={6}>
+          <Card className="w-full">
+            <CardBody>
+              <VStack spacing={6}>
+                <TextControl
+                  label={__('Form Title')}
+                  value={settings.form_title}
+                  onChange={(value) => handleChange('form_title', value)}
+                />
+                
+                <TextControl
+                  label={__('Success Message')}
+                  value={settings.success_message}
+                  onChange={(value) => handleChange('success_message', value)}
+                  help={__('Message displayed after successful submission')}
+                />
+                
+                <div>
+                  <Text className="block text-sm font-medium text-gray-700 mb-2">{__('Required Fields')}</Text>
+                  <VStack spacing={2}>
+                    <CheckboxControl
+                      label={__('Name')}
+                      checked={settings.required_fields.includes('name')}
+                      onChange={(checked) => handleRequiredFieldChange('name', checked)}
+                    />
+                    <CheckboxControl
+                      label={__('Email')}
+                      checked={settings.required_fields.includes('email')}
+                      onChange={(checked) => handleRequiredFieldChange('email', checked)}
+                    />
+                    <CheckboxControl
+                      label={__('Post Title')}
+                      checked={settings.required_fields.includes('title')}
+                      onChange={(checked) => handleRequiredFieldChange('title', checked)}
+                    />
+                    <CheckboxControl
+                      label={__('Post Content')}
+                      checked={settings.required_fields.includes('content')}
+                      onChange={(checked) => handleRequiredFieldChange('content', checked)}
+                    />
+                  </VStack>
+                </div>
+              </VStack>
+            </CardBody>
+          </Card>
+        </VStack>
       ),
     },
   ];
 
   return (
-    <Card className="max-w-4xl mx-auto">
-      <CardHeader>
-        <Heading level={2} className="text-xl font-semibold text-gray-900">{__('Guest Post Request Settings')}</Heading>
-        <p className="mt-1 text-sm text-gray-500">{__('Configure how guest post submissions are handled')}</p>
-      </CardHeader>
-      
-      <CardBody>
-        {message.text && (
-          <Notice 
-            status={message.type === 'success' ? 'success' : 'error'}
-            isDismissible={true}
-            onRemove={() => setMessage({ type: '', text: '' })}
-            className="mb-6"
-          >
-            {message.text}
-          </Notice>
-        )}
+    <div className="max-w-4xl mx-auto">
+      <Card className="shadow-lg border border-gray-200">
+        <CardHeader className="bg-gradient-to-r from-blue-700 to-blue-800 text-white">
+          <Heading level={2} className="text-xl font-semibold">{__('Guest Post Request Settings')}</Heading>
+          <Text className="mt-1 text-sm text-blue-50">{__('Configure how guest post submissions are handled')}</Text>
+        </CardHeader>
         
-        <form onSubmit={handleSubmit}>
-          <TabPanel
-            className="igpr-settings-tabs"
-            activeClass="active-tab"
-            tabs={tabs}
-          >
-            {(tab) => (
-              <div className="p-6">
-                {tab.content}
-              </div>
-            )}
-          </TabPanel>
-          
-          <CardFooter className="flex justify-end bg-gray-50 px-6 py-4">
-            <Button 
-              isPrimary
-              isBusy={saving}
-              type="submit"
-              className="px-4 py-2"
+        <CardBody>
+          {message.text && (
+            <Notice 
+              status={message.type === 'success' ? 'success' : 'error'}
+              isDismissible={true}
+              onRemove={() => setMessage({ type: '', text: '' })}
+              className="mb-6"
             >
-              {saving ? __('Saving...') : __('Save Settings')}
-            </Button>
-          </CardFooter>
-        </form>
-      </CardBody>
-    </Card>
+              {message.text}
+            </Notice>
+          )}
+          
+          <form onSubmit={handleSubmit}>
+            <div className="border-b border-gray-200">
+              <TabPanel
+                className="igpr-settings-tabs"
+                activeClass="active-tab"
+                tabs={tabs}
+                tabClassName="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                activeTabClassName="border-b-2 border-blue-600 text-blue-700 font-semibold"
+              >
+                {(tab) => (
+                  <div className="p-6">
+                    {tab.content}
+                  </div>
+                )}
+              </TabPanel>
+            </div>
+            
+            <CardFooter className="flex justify-end bg-gray-50 px-6 py-4 border-t border-gray-200">
+              <Button 
+                isPrimary
+                isBusy={saving}
+                type="submit"
+                className="px-6 py-2 bg-gradient-to-r from-blue-700 to-blue-800 hover:from-blue-800 hover:to-blue-900 text-white font-medium transition-all duration-200 shadow-sm hover:shadow-md"
+              >
+                {saving ? __('Saving...') : __('Save Settings')}
+              </Button>
+            </CardFooter>
+          </form>
+        </CardBody>
+      </Card>
+
+      <style>
+        {`
+          .igpr-settings-tabs .components-tab-panel__tabs {
+            display: flex;
+            gap: 1rem;
+            padding: 0 1.5rem;
+            margin: 0;
+            border-bottom: 1px solid #e5e7eb;
+          }
+          
+          .igpr-settings-tabs .components-tab-panel__tabs-item {
+            padding: 0.75rem 1rem;
+            margin: 0;
+            border: none;
+            border-bottom: 2px solid transparent;
+            background: transparent;
+            color: #4b5563;
+            font-weight: 500;
+            transition: all 0.2s ease;
+          }
+          
+          .igpr-settings-tabs .components-tab-panel__tabs-item:hover {
+            color: #1f2937;
+            border-bottom-color: #d1d5db;
+          }
+          
+          .igpr-settings-tabs .components-tab-panel__tabs-item.active-tab {
+            color: #1d4ed8;
+            border-bottom-color: #2563eb;
+            font-weight: 600;
+          }
+          
+          .igpr-settings-tabs .components-tab-panel__tabs-item:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3b82f6;
+            border-radius: 0.375rem;
+          }
+          
+          .igpr-settings-tabs .components-tab-panel__tab-content {
+            padding: 1.5rem;
+          }
+        `}
+      </style>
+    </div>
   );
 };
 
