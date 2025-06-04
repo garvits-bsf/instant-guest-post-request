@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { __ } from '@wordpress/i18n';
+import {
+  Button,
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  Spinner,
+  __experimentalHeading as Heading,
+} from '@wordpress/components';
 
 const EmailLogs = () => {
   const [logs, setLogs] = useState([]);
@@ -30,18 +39,27 @@ const EmailLogs = () => {
   };
 
   if (loading) {
-    return <div className="flex justify-center p-8"><div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div></div>;
+    return (
+      <div className="flex justify-center p-8">
+        <Spinner />
+      </div>
+    );
   }
 
   return (
-    <div className="bg-white shadow rounded-lg overflow-hidden">
-      <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-        <h3 className="text-lg leading-6 font-medium text-gray-900">{__('Email Logs')}</h3>
-        <p className="mt-1 max-w-2xl text-sm text-gray-500">{__('Track all emails sent by the plugin')}</p>
-      </div>
-      
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+    <Card className="overflow-hidden">
+      <CardHeader>
+        <Heading level={3} className="text-lg font-medium text-gray-900">
+          {__('Email Logs')}
+        </Heading>
+        <p className="mt-1 text-sm text-gray-500">
+          {__('Track all emails sent by the plugin')}
+        </p>
+      </CardHeader>
+
+      <CardBody className="p-0">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{__('Recipient')}</th>
@@ -81,28 +99,27 @@ const EmailLogs = () => {
           </tbody>
         </table>
       </div>
-      
+      </CardBody>
+
       {totalPages > 1 && (
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+        <CardFooter className="flex items-center justify-between">
           <div className="flex-1 flex justify-between">
-            <button
+            <Button
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page === 1}
-              className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${page === 1 ? 'bg-gray-100 text-gray-400' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
             >
               {__('Previous')}
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setPage(Math.min(totalPages, page + 1))}
               disabled={page === totalPages}
-              className={`ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${page === totalPages ? 'bg-gray-100 text-gray-400' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
             >
               {__('Next')}
-            </button>
+            </Button>
           </div>
-        </div>
+        </CardFooter>
       )}
-    </div>
+    </Card>
   );
 };
 
