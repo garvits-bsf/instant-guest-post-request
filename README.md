@@ -4,6 +4,8 @@ A WordPress plugin allowing visitors to submit guest posts that admins can revie
 
 Use the `[igpr_form]` shortcode to display the submission form on any page. The form is styled with TailwindCSS and handles validation on submission.
 
+The admin screens are built with React and styled using TailwindCSS as well.
+
 ## Development
 
 Build admin assets:

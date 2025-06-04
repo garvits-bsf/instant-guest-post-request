@@ -6,6 +6,7 @@ class Plugin {
         // Hooks registration.
         add_action( 'init', [ __CLASS__, 'register_post_type' ] );
         add_action( 'admin_menu', [ __CLASS__, 'register_admin_pages' ] );
+        add_action( 'admin_enqueue_scripts', [ __CLASS__, 'enqueue_admin_assets' ] );
     }
 
     public static function register_post_type() {
@@ -56,5 +57,19 @@ class Plugin {
 
     public static function render_email_logs_page() {
         echo '<div id="igpr-email-logs-root"></div>';
+    }
+
+    public static function enqueue_admin_assets() {
+        wp_enqueue_script(
+            'igpr-admin',
+            plugins_url( '../admin/js/index.js', __FILE__ ),
+            [ 'wp-element' ],
+            null,
+            true
+        );
+        wp_enqueue_style(
+            'igpr-admin',
+            plugins_url( '../admin/css/admin.css', __FILE__ )
+        );
     }
 }
