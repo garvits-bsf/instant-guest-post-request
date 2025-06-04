@@ -23,6 +23,7 @@ require_once IGPR_DIR . 'includes/class-frontend.php';
 require_once IGPR_DIR . 'includes/class-rest-controller.php';
 require_once IGPR_DIR . 'includes/class-action-handler.php';
 require_once IGPR_DIR . 'includes/class-email.php';
+require_once IGPR_DIR . 'includes/class-ajax-handler.php';
 
 function igpr_init() {
     if ( is_admin() ) {
@@ -32,6 +33,10 @@ function igpr_init() {
     new IGPR\Frontend();
     new IGPR\Rest_Controller();
     new IGPR\Action_Handler();
+
+    	
+	// Initialize AJAX handler.
+	new IGPR\AJAX_Handler();
 }
 add_action( 'plugins_loaded', 'igpr_init' );
 
