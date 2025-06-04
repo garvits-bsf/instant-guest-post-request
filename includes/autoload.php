@@ -1,14 +1,32 @@
 <?php
-namespace InstantGuestPostRequest;
+/**
+ * Autoloader for the Instant Guest Post Request plugin.
+ *
+ * @package Instant_Guest_Post_Request
+ */
 
 spl_autoload_register( function( $class ) {
-    if ( strpos( $class, __NAMESPACE__ ) !== 0 ) {
-        return;
-    }
+	// Project-specific namespace prefix.
+	$prefix = 'IGPR\\';
 
-    $filename = __DIR__ . '/' . strtolower( str_replace( [ __NAMESPACE__ . '\\', '_' ], [ '', '-' ], $class ) ) . '.php';
+	// Base directory for the namespace prefix.
+	$base_dir = plugin_dir_path( dirname( __FILE__ ) );
 
-    if ( file_exists( $filename ) ) {
-        require_once $filename;
-    }
+	// Does the class use the namespace prefix?
+	$len = strlen( $prefix );
+	if ( strncmp( $prefix, $class, $len ) !== 0 ) {
+		// No, move to the next registered autoloader.
+		return;
+	}
+
+	// Get the relative class name.
+	$relative_class = substr( $class, $len );
+
+	// Replace namespace separators with directory separators in the relative class name.
+	$file = $base_dir . 'includes/class-' . strtolower( $relative_class ) . '.php';
+
+	// If the file exists, require it.
+	if ( file_exists( $file ) ) {
+		require $file;
+	}
 } );

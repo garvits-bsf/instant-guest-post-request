@@ -2,6 +2,7 @@ import { render } from '@wordpress/element';
 import SettingsPage from './pages/SettingsPage';
 import SubmissionsTable from './pages/SubmissionsTable';
 import EmailLogs from './pages/EmailLogs';
+import './styles/tailwind.css';
 
 const settingsRoot = document.getElementById('igpr-settings-root');
 if (settingsRoot) {
