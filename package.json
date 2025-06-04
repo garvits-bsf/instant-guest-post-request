@@ -1,0 +1,17 @@
+{
+  "name": "instant-guest-post-request",
+  "version": "0.1.0",
+  "description": "Instant Guest Post Request Plugin",
+  "scripts": {
+    "build:admin": "wp-scripts build ./admin/src/index.js --output-path=admin/js",
+    "start:admin": "wp-scripts start ./admin/src/index.js --output-path=admin/js"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^26.0.0"
+  },
+  "dependencies": {
+    "@brainstormforce/force-ui": "^0.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
