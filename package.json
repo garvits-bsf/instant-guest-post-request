@@ -5,19 +5,25 @@
   "scripts": {
     "build:admin": "wp-scripts build ./admin/src/index.js --output-path=admin/js",
     "start:admin": "wp-scripts start ./admin/src/index.js --output-path=admin/js",
-    "build:css:admin": "tailwindcss -i ./admin/src/styles/tailwind.css -o ./admin/css/admin.css --minify",
+    "build:css:admin": "tailwindcss -i ./admin/src/styles/tailwind.css -o ./admin/css/tailwind.css --minify",
     "build:css:front": "tailwindcss -i ./front/src/styles/tailwind.css -o ./front/css/front.css --minify",
     "build:css": "npm run build:css:admin && npm run build:css:front",
-    "watch:css:admin": "tailwindcss -i ./admin/src/styles/tailwind.css -o ./admin/css/admin.css --watch",
-    "watch:css:front": "tailwindcss -i ./front/src/styles/tailwind.css -o ./front/css/front.css --watch"
+    "watch:css:admin": "tailwindcss -i ./admin/src/styles/tailwind.css -o ./admin/css/tailwind.css --watch",
+    "watch:css:front": "tailwindcss -i ./front/src/styles/tailwind.css -o ./front/css/front.css --watch",
+    "build": "npm run build:css && npm run build:admin",
+    "dev": "concurrently \"npm run start:admin\" \"npm run watch:css:admin\" \"npm run watch:css:front\""
   },
   "devDependencies": {
     "@wordpress/scripts": "^26.0.0",
     "autoprefixer": "^10.4.14",
+    "concurrently": "^8.0.1",
     "postcss": "^8.4.24",
     "tailwindcss": "^3.3.2"
   },
   "dependencies": {
+    "@wordpress/components": "^25.0.0",
+    "@wordpress/element": "^5.0.0",
+    "@wordpress/i18n": "^4.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   }
