@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const tabs = [
   'General',
@@ -12,6 +12,42 @@ const tabs = [
 
 const SettingsPage = () => {
   const [active, setActive] = useState('General');
+  const [settings, setSettings] = useState({
+    igpr_autoreply: false,
+    igpr_autoreply_tpl_approved: '',
+    igpr_autoreply_tpl_rejected: '',
+  });
+  const [notice, setNotice] = useState('');
+
+  useEffect(() => {
+    fetch(igprSettings.restUrl, {
+      headers: { 'X-WP-Nonce': igprSettings.nonce },
+    })
+      .then((res) => res.json())
+      .then((data) => setSettings(data));
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, type, checked, value } = e.target;
+    setSettings((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+  };
+
+  const saveSettings = () => {
+    fetch(igprSettings.restUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-WP-Nonce': igprSettings.nonce,
+      },
+      body: JSON.stringify(settings),
+    })
+      .then((res) => res.json())
+      .then(() => setNotice('Settings saved successfully'))
+      .catch(() => setNotice('Error saving settings'));
+  };
   return (
     <div className="p-6">
       <div className="border-b mb-4">
@@ -60,13 +96,38 @@ const SettingsPage = () => {
 
       {active === 'Notifications' && (
         <div className="space-y-4">
-          <div>
-            <label htmlFor="adminEmail" className="block font-medium">Admin Email</label>
-            <input id="adminEmail" type="email" className="mt-1 block w-full border rounded p-2" />
-          </div>
           <div className="flex items-center space-x-2">
-            <input id="sendConfirmation" type="checkbox" className="rounded" />
-            <label htmlFor="sendConfirmation">Send Confirmation</label>
+            <input
+              id="igpr_autoreply"
+              name="igpr_autoreply"
+              type="checkbox"
+              className="rounded"
+              checked={settings.igpr_autoreply}
+              onChange={handleChange}
+            />
+            <label htmlFor="igpr_autoreply">Send Auto-Reply</label>
+          </div>
+          <div>
+            <label htmlFor="igpr_autoreply_tpl_approved" className="block font-medium">Approved Template</label>
+            <textarea
+              id="igpr_autoreply_tpl_approved"
+              name="igpr_autoreply_tpl_approved"
+              className="mt-1 block w-full border rounded p-2"
+              rows="3"
+              value={settings.igpr_autoreply_tpl_approved}
+              onChange={handleChange}
+            ></textarea>
+          </div>
+          <div>
+            <label htmlFor="igpr_autoreply_tpl_rejected" className="block font-medium">Rejected Template</label>
+            <textarea
+              id="igpr_autoreply_tpl_rejected"
+              name="igpr_autoreply_tpl_rejected"
+              className="mt-1 block w-full border rounded p-2"
+              rows="3"
+              value={settings.igpr_autoreply_tpl_rejected}
+              onChange={handleChange}
+            ></textarea>
           </div>
         </div>
       )}
@@ -104,8 +165,16 @@ const SettingsPage = () => {
         </p>
       )}
 
+      {notice && (
+        <div className="mb-4 text-green-600">{notice}</div>
+      )}
       <div className="mt-4">
-        <button className="bg-blue-600 text-white px-4 py-2 rounded">Save Changes</button>
+        <button
+          className="bg-blue-600 text-white px-4 py-2 rounded"
+          onClick={saveSettings}
+        >
+          Save Changes
+        </button>
       </div>
     </div>
   );
