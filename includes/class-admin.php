@@ -22,6 +22,7 @@ class Admin {
 		add_action( 'admin_action_igpr_approve_post', array( $this, 'approve_guest_post' ) );
 		add_action( 'admin_action_igpr_reject_post', array( $this, 'reject_guest_post' ) );
 		add_action( 'admin_notices', array( $this, 'display_admin_notices' ) );
+		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widget' ) );
 	}
 
 	/**
@@ -80,14 +81,28 @@ class Admin {
 			return;
 		}
 
+		// Enqueue Tailwind CSS
+		wp_enqueue_style(
+			'igpr-tailwind-style',
+			plugin_dir_url( dirname( __FILE__ ) ) . 'admin/css/tailwind.css',
+			array(),
+			filemtime( plugin_dir_path( dirname( __FILE__ ) ) . 'admin/css/tailwind.css' )
+		);
+
+		// Enqueue custom admin CSS
 		wp_enqueue_style(
 			'igpr-admin-style',
 			plugin_dir_url( dirname( __FILE__ ) ) . 'admin/css/admin.css',
-			array(),
+			array('igpr-tailwind-style'),
 			filemtime( plugin_dir_path( dirname( __FILE__ ) ) . 'admin/css/admin.css' )
 		);
 
-		$asset_file = include plugin_dir_path( dirname( __FILE__ ) ) . 'admin/js/index.asset.php';
+		// Check if asset file exists
+		$asset_file_path = plugin_dir_path( dirname( __FILE__ ) ) . 'admin/js/index.asset.php';
+		$asset_file = file_exists($asset_file_path) ? include $asset_file_path : array(
+			'dependencies' => array('wp-element', 'wp-i18n', 'wp-api-fetch'),
+			'version' => filemtime(plugin_dir_path( dirname( __FILE__ ) ) . 'admin/js/index.js'),
+		);
 
 		wp_enqueue_script(
 			'igpr-admin-script',
@@ -95,6 +110,15 @@ class Admin {
 			$asset_file['dependencies'],
 			$asset_file['version'],
 			true
+		);
+
+		wp_localize_script(
+			'igpr-admin-script',
+			'igprData',
+			array(
+				'apiUrl' => esc_url_raw( rest_url( 'igpr/v1' ) ),
+				'nonce'  => wp_create_nonce( 'wp_rest' ),
+			)
 		);
 	}
 
@@ -176,7 +200,8 @@ class Admin {
 			delete_post_meta( $post_id, '_igpr_reject_token' );
 			
 			// Send notification to author
-			$this->send_author_notification( $post_id, 'approved' );
+			$rest_api = new REST_API();
+			$rest_api->send_author_notification( $post_id, 'approved' );
 			
 			// Redirect back with success message
 			wp_redirect( add_query_arg( 'igpr_message', 'approved', admin_url( 'edit.php' ) ) );
@@ -215,7 +240,8 @@ class Admin {
 		}
 		
 		// Send notification to author before trashing
-		$this->send_author_notification( $post_id, 'rejected' );
+		$rest_api = new REST_API();
+		$rest_api->send_author_notification( $post_id, 'rejected' );
 		
 		// Move post to trash
 		$result = wp_trash_post( $post_id );
@@ -231,83 +257,6 @@ class Admin {
 		} else {
 			wp_die( esc_html__( 'Failed to reject post.', 'instant-guest-post-request' ) );
 		}
-	}
-
-	/**
-	 * Send notification to the guest post author.
-	 *
-	 * @param int    $post_id Post ID.
-	 * @param string $status  Status of the post (approved or rejected).
-	 */
-	private function send_author_notification( $post_id, $status ) {
-		$post = get_post( $post_id );
-		if ( ! $post ) {
-			return;
-		}
-		
-		$author_email = get_post_meta( $post_id, 'igpr_author_email', true );
-		$author_name = get_post_meta( $post_id, 'igpr_author_name', true );
-		
-		if ( ! $author_email ) {
-			return;
-		}
-		
-		$subject = '';
-		$message = '';
-		
-		if ( $status === 'approved' ) {
-			$subject = sprintf( __( '[%s] Your Guest Post Has Been Approved', 'instant-guest-post-request' ), get_bloginfo( 'name' ) );
-			$message = sprintf(
-				/* translators: %1$s: author name, %2$s: post title, %3$s: post URL */
-				__( 'Hello %1$s,
-
-Great news! Your guest post "%2$s" has been approved and is now published on our site.
-
-You can view your published post here: %3$s
-
-Thank you for your contribution!
-
-Regards,
-%4$s Team', 'instant-guest-post-request' ),
-				$author_name,
-				$post->post_title,
-				get_permalink( $post_id ),
-				get_bloginfo( 'name' )
-			);
-		} else {
-			$subject = sprintf( __( '[%s] Your Guest Post Submission', 'instant-guest-post-request' ), get_bloginfo( 'name' ) );
-			$message = sprintf(
-				/* translators: %1$s: author name, %2$s: post title, %3$s: site name */
-				__( 'Hello %1$s,
-
-Thank you for submitting your guest post "%2$s" to our site.
-
-After careful review, we have decided not to publish this submission at this time.
-
-We encourage you to review our guidelines and consider submitting another post in the future.
-
-Regards,
-%3$s Team', 'instant-guest-post-request' ),
-				$author_name,
-				$post->post_title,
-				get_bloginfo( 'name' )
-			);
-		}
-		
-		wp_mail( $author_email, $subject, $message );
-		
-		// Log the email
-		global $wpdb;
-		$table_name = $wpdb->prefix . 'igpr_email_logs';
-		
-		$wpdb->insert(
-			$table_name,
-			array(
-				'to_email' => $author_email,
-				'subject'  => $subject,
-				'status'   => 'sent',
-			)
-		);
 	}
 
 	/**
@@ -335,6 +284,125 @@ Regards,
 		if ( $text ) {
 			printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), esc_html( $text ) );
 		}
+	}
+
+	/**
+	 * Add dashboard widget.
+	 */
+	public function add_dashboard_widget() {
+		wp_add_dashboard_widget(
+			'igpr_dashboard_widget',
+			__( 'Guest Post Submissions', 'instant-guest-post-request' ),
+			array( $this, 'render_dashboard_widget' )
+		);
+	}
+
+	/**
+	 * Render dashboard widget.
+	 */
+	public function render_dashboard_widget() {
+		$pending_count = $this->get_submissions_count( 'pending' );
+		$published_count = $this->get_submissions_count( 'publish' );
+		$rejected_count = $this->get_submissions_count( 'trash' );
+		
+		$recent_submissions = $this->get_recent_submissions();
+		?>
+		<div class="igpr-dashboard-stats">
+			<div class="igpr-stat-box">
+				<div class="igpr-stat-number"><?php echo esc_html( $pending_count ); ?></div>
+				<div class="igpr-stat-label"><?php esc_html_e( 'Pending', 'instant-guest-post-request' ); ?></div>
+			</div>
+			<div class="igpr-stat-box">
+				<div class="igpr-stat-number"><?php echo esc_html( $published_count ); ?></div>
+				<div class="igpr-stat-label"><?php esc_html_e( 'Published', 'instant-guest-post-request' ); ?></div>
+			</div>
+			<div class="igpr-stat-box">
+				<div class="igpr-stat-number"><?php echo esc_html( $rejected_count ); ?></div>
+				<div class="igpr-stat-label"><?php esc_html_e( 'Rejected', 'instant-guest-post-request' ); ?></div>
+			</div>
+		</div>
+		
+		<div class="igpr-recent-submissions">
+			<h3><?php esc_html_e( 'Recent Submissions', 'instant-guest-post-request' ); ?></h3>
+			
+			<?php if ( ! empty( $recent_submissions ) ) : ?>
+				<?php foreach ( $recent_submissions as $submission ) : ?>
+					<div class="igpr-recent-submission-item">
+						<div class="igpr-submission-title">
+							<a href="<?php echo esc_url( get_edit_post_link( $submission->ID ) ); ?>"><?php echo esc_html( $submission->post_title ); ?></a>
+							<?php
+							$status = $submission->post_status;
+							if ( $status === 'trash' ) {
+								$status = 'rejected';
+							}
+							$status_class = 'igpr-status-' . $status;
+							?>
+							<span class="igpr-status <?php echo esc_attr( $status_class ); ?>"><?php echo esc_html( $status ); ?></span>
+						</div>
+						<div class="igpr-submission-meta">
+							<?php
+							$author_name = get_post_meta( $submission->ID, 'igpr_author_name', true );
+							$author_email = get_post_meta( $submission->ID, 'igpr_author_email', true );
+							?>
+							<?php echo esc_html( $author_name ); ?> (<?php echo esc_html( $author_email ); ?>) - 
+							<?php echo esc_html( get_the_date( '', $submission->ID ) ); ?>
+						</div>
+					</div>
+				<?php endforeach; ?>
+			<?php else : ?>
+				<p><?php esc_html_e( 'No recent submissions.', 'instant-guest-post-request' ); ?></p>
+			<?php endif; ?>
+		</div>
+		
+		<div class="igpr-view-all">
+			<a href="<?php echo esc_url( admin_url( 'admin.php?page=igpr-submissions' ) ); ?>"><?php esc_html_e( 'View All Submissions', 'instant-guest-post-request' ); ?></a>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Get submissions count by status.
+	 *
+	 * @param string $status Post status.
+	 * @return int Count.
+	 */
+	private function get_submissions_count( $status ) {
+		$args = array(
+			'post_type'      => 'post',
+			'post_status'    => $status,
+			'posts_per_page' => -1,
+			'meta_query'     => array(
+				array(
+					'key'     => 'igpr_author_email',
+					'compare' => 'EXISTS',
+				),
+			),
+		);
+
+		$query = new \WP_Query( $args );
+		return $query->found_posts;
+	}
+
+	/**
+	 * Get recent submissions.
+	 *
+	 * @return array Recent submissions.
+	 */
+	private function get_recent_submissions() {
+		$args = array(
+			'post_type'      => 'post',
+			'post_status'    => array( 'pending', 'publish', 'trash' ),
+			'posts_per_page' => 5,
+			'meta_query'     => array(
+				array(
+					'key'     => 'igpr_author_email',
+					'compare' => 'EXISTS',
+				),
+			),
+		);
+
+		$query = new \WP_Query( $args );
+		return $query->posts;
 	}
 
 	/**

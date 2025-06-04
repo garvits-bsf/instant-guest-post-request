@@ -1,14 +1,15 @@
+/**
+ * Admin main entry point
+ */
 import { render } from '@wordpress/element';
-import SettingsPage from './pages/SettingsPage';
-import SubmissionsTable from './pages/SubmissionsTable';
-import EmailLogs from './pages/EmailLogs';
 import './styles/tailwind.css';
 
-const settingsRoot = document.getElementById('igpr-settings-root');
-if (settingsRoot) {
-  render(<SettingsPage />, settingsRoot);
-}
+// Import components
+import SubmissionsTable from './components/SubmissionsTable';
+import EmailLogs from './components/EmailLogs';
+import Settings from './components/Settings';
 
+// Render components based on the container ID
 const submissionsRoot = document.getElementById('igpr-submissions-root');
 if (submissionsRoot) {
   render(<SubmissionsTable />, submissionsRoot);
@@ -17,4 +18,9 @@ if (submissionsRoot) {
 const emailLogsRoot = document.getElementById('igpr-email-logs-root');
 if (emailLogsRoot) {
   render(<EmailLogs />, emailLogsRoot);
+}
+
+const settingsRoot = document.getElementById('igpr-settings-root');
+if (settingsRoot) {
+  render(<Settings />, settingsRoot);
 }
