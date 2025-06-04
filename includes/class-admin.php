@@ -89,14 +89,23 @@ class Admin {
 
 		$asset_file = include plugin_dir_path( dirname( __FILE__ ) ) . 'admin/js/index.asset.php';
 
-		wp_enqueue_script(
-			'igpr-admin-script',
-			plugin_dir_url( dirname( __FILE__ ) ) . 'admin/js/index.js',
-			$asset_file['dependencies'],
-			$asset_file['version'],
-			true
-		);
-	}
+                wp_enqueue_script(
+                        'igpr-admin-script',
+                        plugin_dir_url( dirname( __FILE__ ) ) . 'admin/js/index.js',
+                        $asset_file['dependencies'],
+                        $asset_file['version'],
+                        true
+                );
+
+                wp_localize_script(
+                        'igpr-admin-script',
+                        'igprSettings',
+                        array(
+                                'nonce'   => wp_create_nonce( 'wp_rest' ),
+                                'restUrl' => esc_url_raw( rest_url( 'igpr/v1/settings' ) ),
+                        )
+                );
+        }
 
 	/**
 	 * Add custom actions to guest post rows in admin.

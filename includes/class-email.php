@@ -54,7 +54,7 @@ class Email {
             return;
         }
 
-        $email = get_post_meta( $post_id, '_igpr_author_email', true );
+        $email = get_post_meta( $post_id, 'igpr_author_email', true );
         if ( ! $email ) {
             return;
         }

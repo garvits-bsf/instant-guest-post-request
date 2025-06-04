@@ -75,7 +75,8 @@ class Frontend {
 		?>
 		<div class="igpr-form-container max-w-lg mx-auto p-6 bg-white rounded-lg shadow-md">
 			<h2 class="text-2xl font-bold mb-6 text-gray-800">Submit a Guest Post</h2>
-			<form id="igpr-submission-form" class="space-y-6" enctype="multipart/form-data">
+                        <form id="igpr-submission-form" class="space-y-6" enctype="multipart/form-data">
+                                <input type="hidden" name="igpr_fallback" value="1" />
 				<div>
 					<label for="igpr-name" class="block text-sm font-medium text-gray-700 mb-1">Name</label>
 					<input type="text" id="igpr-name" name="name" required 
